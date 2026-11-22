@@ -11,7 +11,7 @@ Each entry is a short ADR: the decision, why we made it, and what we gave up.
 - **Rejected:** NestJS (more structure, but a lot of decorator and DI boilerplate for this size). Fastify (fine, but Express is more familiar to reviewers).
 
 ### 3. SQLite + Prisma
-- **Why:** No setup for reviewers (`npm run seed` and it runs). Prisma gives typed queries and migrations. 10k rows is tiny for SQLite.
+- **Why:** No setup for reviewers (`npm run setup` migrates and seeds). Prisma gives typed queries and migrations. 10k rows is tiny for SQLite.
 - **Trade-off:** SQLite has a single writer and no native `MEDIAN`. With one HR team as users, write concurrency doesn't matter. Median is computed in code (see the performance doc). **Upgrade path:** change the Prisma `provider` to `postgresql`. Nothing in the services or repositories is SQLite-specific.
 
 ### 4. Money stored as integers in local currency, and currency derived from country
@@ -36,3 +36,25 @@ Each entry is a short ADR: the decision, why we made it, and what we gave up.
 
 ### 10. Authentication planned for phase 2
 - **Why:** Phase 1 focuses on the salary data and insights. Authentication and role-based access are next on the roadmap (see the requirements doc). The API is versioned and has a single middleware chain, so adding an auth middleware is a local change.
+
+### 11. Insights computed in application code from a narrow projection
+- **What:** Each insight query selects only `country, currency, department, jobTitle, salary` for the filtered population. Grouping, median and percentiles then run in pure functions (`domain/stats.ts`).
+- **Why:** SQLite has no `MEDIAN` or `PERCENTILE_CONT`. Doing all statistics in one place keeps the definitions consistent (Excel's `PERCENTILE.INC`, so HR can cross-check) and unit-testable without a database. At 10k rows this costs about 30 ms (see the performance doc).
+- **Trade-off:** Memory and latency grow linearly with headcount. **Upgrade path** at around 500k+ employees: move aggregation into SQL (Postgres `percentile_cont`), or keep the app-side code and cache results per filter, invalidating on writes.
+
+### 12. Never compare raw salaries across currencies
+- **What:** When an insight is filtered to one country it is reported in that country's currency. Otherwise every salary is converted to USD first. In the directory, salary sorting is only enabled once a single country is selected.
+- **Why:** Ranking ₹2,400,000 above $150,000 is a silent but serious analytical error. The API and UI make that comparison impossible rather than relying on users to notice it.
+
+### 13. Moving to a country with a different currency requires a new salary
+- **Why:** If only the country changed, the stored amount would be silently reinterpreted in the new currency (₹2.4M becomes $2.4M). The service rejects such an update unless a new salary is provided. `SalaryChange` records both old and new currency, so the history stays truthful.
+
+### 14. UI state that people would share lives in the URL
+- **What:** Directory filters, sort, page, the open employee (`?employee=42`) and the dashboard filters are all URL parameters.
+- **Why:** HR can bookmark "Engineering in India sorted by salary" or paste a link to a specific employee to a colleague. Refreshing never loses context.
+
+### 15. Node 24 LTS, current dependency majors, zero known vulnerabilities
+- **Why:** Node 23 (the version installed locally at the start) is end-of-life and unsupported by Vitest 5. `.nvmrc` pins 24 LTS. `npm audit` was clean for both apps at the time of writing. Two transitive dev-only vulnerabilities in the Prisma CLI are fixed with npm `overrides` (see `backend/package.json`).
+
+### 16. Frontend tests mock the network, not modules
+- **Why:** Mock Service Worker intercepts real HTTP calls, so tests exercise the actual axios client, query hooks, error normalization and components together. Unhandled requests fail the test, so no call goes unnoticed.

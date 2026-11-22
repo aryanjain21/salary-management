@@ -16,7 +16,7 @@ There are two independently built apps, `frontend/` and `backend/`. They communi
 
 ```mermaid
 flowchart TD
-  R[routes<br/>URL → handler, validation middleware] --> C[controllers<br/>HTTP in/out only]
+  R[routes<br/>URL → handler] --> C[controllers<br/>validate input, HTTP in/out]
   C --> S[services<br/>business rules]
   S --> RP[repositories<br/>Prisma queries]
   S --> D[domain<br/>pure functions: stats, currency]
@@ -25,8 +25,8 @@ flowchart TD
 
 | Layer | Responsibility | Knows about HTTP? | Knows about DB? |
 |---|---|---|---|
-| routes | Wiring, zod request validation | yes | no |
-| controllers | Map request → service call → response | yes | no |
+| routes | Wire URLs to handlers | yes | no |
+| controllers | Validate input with zod (`parseInput`), call the service, shape the response | yes | no |
 | services | Rules (currency derived from country, salary history on change, not-found handling) | no | no (uses repository interface) |
 | repositories | Queries, transactions, aggregation | no | yes |
 | domain | Pure math: median, percentiles, histogram, FX conversion | no | no |
@@ -34,6 +34,32 @@ flowchart TD
 Services depend on a repository *interface*, so unit tests can use an in-memory fake. The real Prisma repository is covered by integration tests against a temporary SQLite file.
 
 `createApp(deps)` builds the Express app without starting a server. `server.ts` only calls `listen`. That split keeps tests free of sockets.
+
+`/meta` (reference data for dropdowns) is a thin route that queries Prisma directly. It has no business rules, so a service and repository would only add indirection.
+
+### Code map
+
+```
+backend/src/
+├── app.ts, server.ts          composition root / process entry
+├── config/env.ts              zod-validated environment
+├── domain/                    pure: countries, currency (FX), stats, employment types
+├── errors/AppError.ts         client-safe error types
+├── http/                      parseInput + shared query schemas
+├── middleware/errorHandler.ts single error → JSON mapping
+├── modules/employees/         routes · controller · schema · service · repository · mapper · types
+├── modules/insights/          routes · schema · service · repository · types
+├── modules/meta/              reference data route
+└── seed/                      pure, deterministic employee generator (+ prisma/seed.ts)
+
+frontend/src/
+├── api/                       axios client, ApiError, endpoint modules, query keys, types
+├── hooks/                     TanStack Query hooks, useDebouncedCallback
+├── features/employees/        directory, filters, grid, form dialog, drawer, delete dialog
+├── features/insights/         dashboard sections and charts
+├── components/                layout, page header, error state, notifications
+└── test/                      MSW server, render helper, fixtures
+```
 
 ## Data model
 
