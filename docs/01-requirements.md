@@ -17,16 +17,19 @@ ACME's HR team keeps salary data for about 10,000 employees in several countries
 | 5 | **Pay insights dashboard**, covering: headcount and total payroll by country; min, max, average and median salary per country; average, min and max salary for a job title in a country; salary by department; salary distribution; best-paid roles. | This is the part of the problem about answering questions on how the org pays people. |
 | 6 | **Seed script** that creates 10,000 realistic, deterministic employees. | Realistic volume for testing performance and for the demo. |
 
-## Deliberately left out (and why)
+## Planned for later phases
 
-| Left out | Reasoning |
-|---|---|
-| Authentication and role-based access | There is a single persona and the exercise is about the salary domain. Real salary data **must** sit behind auth (SSO plus an audit of who viewed what), so this is the **first follow-up**. |
-| Gender, ethnicity and pay-equity analytics | These involve sensitive personal data that needs legal and privacy review before we collect it. The schema can be extended to support them. |
-| Live FX rates | They add an external dependency and make the numbers change from run to run. Fixed, dated reference rates are enough for analysis and are clearly labelled in the UI. |
-| Payroll runs, tax, bonuses or equity, approval workflows | These belong to a different product (payroll or compensation planning). Including them would dilute the core. |
-| Bulk Excel import and export | High value, and the natural next step for migrating off spreadsheets. It comes after the data model and CRUD are proven. |
-| Multi-tenancy, localization, mobile layout | Not needed for one org's HR team on desktop. |
+Phase 1 focuses on getting the salary data right and making it easy to query. These items build on that foundation and are planned for later phases.
+
+| Feature | Planned for | Notes |
+|---|---|---|
+| Authentication and role-based access | **Phase 2 (next)** | SSO plus an audit of who viewed what. The API already runs through a single middleware chain, so auth slots in without touching business logic. |
+| Bulk Excel import and export | **Phase 2 (next)** | The natural next step for moving HR fully off spreadsheets, now that the data model and CRUD are in place. |
+| Live FX rates | Phase 3 | Phase 1 uses fixed, dated reference rates, clearly labelled in the UI, so analysis stays consistent. A live rate provider can replace the rate table behind the same interface. |
+| Pay-equity analytics (gender, ethnicity) | Phase 3 | Needs legal and privacy sign-off before this data is collected. The schema can be extended to support it. |
+| Bonuses, equity and approval workflows | Phase 3 | Extends the salary record into full compensation planning. |
+| Payroll runs and tax | To be evaluated | Usually handled by a dedicated payroll system. We'll decide whether to build it or integrate once phase 2 is live. |
+| Multi-tenancy, localization, mobile layout | As needed | The current users are one HR team on desktop. These come in when the user base grows. |
 
 ## Success criteria
 - Every list, filter and insight request responds in **under 300 ms** on 10k employees, on a laptop.
