@@ -49,6 +49,7 @@ export function CountryComparison({ countries, onSelectCountry }: CountryCompari
                       type="button"
                       onClick={() => onSelectCountry(c.country)}
                       underline="hover"
+                      sx={{ textAlign: 'left', whiteSpace: 'nowrap' }}
                     >
                       {c.countryName}
                     </Link>

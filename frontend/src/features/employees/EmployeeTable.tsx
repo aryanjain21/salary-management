@@ -73,7 +73,7 @@ export function EmployeeTable({
       {
         field: 'salary',
         headerName: 'Salary (local)',
-        width: 150,
+        width: 165,
         align: 'right',
         headerAlign: 'right',
         sortable: canSortBySalary,
@@ -162,7 +162,11 @@ export function EmployeeTable({
         disableRowSelectionOnClick
         getRowHeight={() => 'auto'}
         onRowClick={({ row }) => onRowClick(row)}
-        sx={{ '& .MuiDataGrid-row': { cursor: 'pointer' } }}
+        sx={{
+          '& .MuiDataGrid-row': { cursor: 'pointer' },
+          // Auto-height rows: keep single-line cells aligned with the two-line name cell.
+          '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center' },
+        }}
         localeText={{ noRowsLabel: 'No employees match these filters' }}
       />
     </Box>

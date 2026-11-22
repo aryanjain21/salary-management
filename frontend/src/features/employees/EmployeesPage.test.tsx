@@ -1,5 +1,5 @@
 import { screen, waitFor, within } from '@testing-library/react';
-import { http, HttpResponse } from 'msw';
+import { delay, http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import type { Employee } from '../../api/types';
 import { META, makeEmployee, page } from '../../test/fixtures';
@@ -129,5 +129,27 @@ describe('EmployeesPage', () => {
     expect(screen.getByLabelText('Search')).toHaveValue('');
     expect(requests.at(-1)?.has('country')).toBe(false);
     expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+  });
+
+  it('never labels the previous total as the count for new filters', async () => {
+    server.use(
+      http.get('/api/v1/meta', () => HttpResponse.json(META)),
+      http.get('/api/v1/employees', async ({ request }) => {
+        if (new URL(request.url).searchParams.get('country') === 'IN') {
+          await delay(150);
+          return HttpResponse.json(page([makeEmployee()], { total: 2_539 }));
+        }
+        return HttpResponse.json(page([makeEmployee()], { total: 10_000 }));
+      }),
+    );
+    const { user } = renderApp({ route: '/employees' });
+    await screen.findByText('10,000 employees');
+
+    await user.click(screen.getByLabelText('Country'));
+    await user.click(within(screen.getByRole('listbox')).getByText('India'));
+
+    expect(screen.getByText('Loading employees…')).toBeInTheDocument();
+    expect(screen.queryByText('10,000 matching employees')).not.toBeInTheDocument();
+    expect(await screen.findByText('2,539 matching employees')).toBeInTheDocument();
   });
 });

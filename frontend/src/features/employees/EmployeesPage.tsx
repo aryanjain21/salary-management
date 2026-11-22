@@ -28,9 +28,11 @@ export function EmployeesPage() {
   const [toDelete, setToDelete] = useState<EmployeeDetail | null>(null);
 
   const total = employees.data?.meta.total;
+  // While new filters load, the previous page stays visible (keepPreviousData);
+  // don't present its total as the count for the new filters.
   const subtitle =
-    total === undefined
-      ? 'Search and manage employee salary records'
+    total === undefined || employees.isPlaceholderData
+      ? 'Loading employees…'
       : `${formatNumber(total)} ${hasFilters ? 'matching ' : ''}employee${total === 1 ? '' : 's'}`;
 
   return (
