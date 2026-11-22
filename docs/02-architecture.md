@@ -10,7 +10,7 @@ flowchart LR
   SEED[seed.ts<br/>10k employees] --> DB
 ```
 
-There are two independently built apps, `frontend/` and `backend/`. They communicate only through a versioned REST API. Neither imports code from the other, so they can be deployed, scaled and replaced separately.
+There are two independently built apps, `frontend/` and `backend/`. They communicate only through a versioned REST API. Neither imports code from the other, so either one can be changed or replaced without touching the other.
 
 ## Backend layers
 
