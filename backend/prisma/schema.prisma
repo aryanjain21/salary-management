@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// One row per employee. Salary is the annual base salary in whole units of
+/// the employee's local currency (no floats, no minor units).
+model Employee {
+  id             Int            @id @default(autoincrement())
+  employeeCode   String         @unique
+  firstName      String
+  lastName       String
+  email          String         @unique
+  jobTitle       String
+  department     String
+  /// ISO 3166-1 alpha-2 country code, e.g. "IN"
+  country        String
+  /// ISO 4217 currency code. Always derived from `country` by the service layer.
+  currency       String
+  salary         Int
+  /// FULL_TIME | PART_TIME | CONTRACT (validated in the application layer)
+  employmentType String
+  hireDate       DateTime
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  salaryChanges  SalaryChange[]
+
+  @@index([country])
+  @@index([country, jobTitle])
+  @@index([department])
+  @@index([jobTitle])
+  @@index([lastName])
+}
+
+/// Audit trail of salary changes. Written in the same transaction as the
+/// employee update so it can never drift from the current salary.
+model SalaryChange {
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  oldSalary  Int
+  newSalary  Int
+  currency   String
+  reason     String?
+  changedAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId, changedAt])
+}
