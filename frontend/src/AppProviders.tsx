@@ -1,6 +1,7 @@
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import { NotificationProvider } from './components/NotificationProvider';
 import { theme } from './theme';
 
 interface AppProvidersProps {
@@ -14,7 +15,7 @@ export function AppProviders({ queryClient, children }: AppProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <NotificationProvider>{children}</NotificationProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -70,5 +70,28 @@ export function useEmployeeSearchParams() {
     params.search || params.country || params.department || params.jobTitle,
   );
 
-  return { params, update, clearFilters, hasFilters, pageSizes: PAGE_SIZES };
+  /** The employee open in the detail drawer (?employee=42), kept separate from list params. */
+  const selectedId = positiveInt(searchParams.get('employee'), 0) || null;
+
+  const selectEmployee = useCallback(
+    (id: number | null) => {
+      setSearchParams((current) => {
+        const next = new URLSearchParams(current);
+        if (id === null) next.delete('employee');
+        else next.set('employee', String(id));
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
+
+  return {
+    params,
+    update,
+    clearFilters,
+    hasFilters,
+    pageSizes: PAGE_SIZES,
+    selectedId,
+    selectEmployee,
+  };
 }
