@@ -1,20 +1,7 @@
 import { z } from 'zod';
-import { isSupportedCountry } from '../../domain/countries';
 import { EMPLOYMENT_TYPES } from '../../domain/employment';
+import { countryCode, optionalText } from '../../http/schemas';
 import { SORTABLE_FIELDS } from './employee.types';
-
-const optionalText = z
-  .string()
-  .trim()
-  .max(100)
-  .optional()
-  .transform((v) => (v === '' ? undefined : v));
-
-const countryCode = z
-  .string()
-  .trim()
-  .toUpperCase()
-  .refine(isSupportedCountry, { message: 'Unsupported country' });
 
 export const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),

@@ -8,6 +8,10 @@ import { createErrorHandler, notFoundHandler } from './middleware/errorHandler';
 import { PrismaEmployeeRepository } from './modules/employees/employee.repository';
 import { createEmployeeRouter } from './modules/employees/employee.routes';
 import { EmployeeService } from './modules/employees/employee.service';
+import { PrismaInsightsRepository } from './modules/insights/insights.repository';
+import { createInsightsRouter } from './modules/insights/insights.routes';
+import { InsightsService } from './modules/insights/insights.service';
+import { createMetaRouter } from './modules/meta/meta.routes';
 
 export interface AppOptions {
   corsOrigin: string;
@@ -18,6 +22,7 @@ export interface AppOptions {
 /** Composition root: wires repositories → services → routers. */
 export function createApp({ corsOrigin, logger, prisma }: AppOptions): Express {
   const employeeService = new EmployeeService(new PrismaEmployeeRepository(prisma));
+  const insightsService = new InsightsService(new PrismaInsightsRepository(prisma));
 
   const app = express();
 
@@ -31,6 +36,8 @@ export function createApp({ corsOrigin, logger, prisma }: AppOptions): Express {
     res.json({ status: 'ok' });
   });
   app.use('/api/v1/employees', createEmployeeRouter(employeeService));
+  app.use('/api/v1/insights', createInsightsRouter(insightsService));
+  app.use('/api/v1/meta', createMetaRouter(prisma));
 
   app.use(notFoundHandler);
   app.use(createErrorHandler(logger));
