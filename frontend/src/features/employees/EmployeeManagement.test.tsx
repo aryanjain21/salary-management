@@ -97,7 +97,7 @@ describe('managing employees', () => {
     expect(await screen.findByText('Asha Rao added')).toBeInTheDocument();
     expect(router.state.location.search).toContain('employee=77');
     const details = await screen.findByRole('region', { name: 'Employee details' });
-    expect(within(details).getByRole('heading', { name: 'Asha Rao' })).toBeInTheDocument();
+    expect(await within(details).findByRole('heading', { name: 'Asha Rao' })).toBeInTheDocument();
   });
 
   it('validates required fields before calling the API', async () => {
