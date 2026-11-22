@@ -110,6 +110,54 @@ describe('EmployeesPage', () => {
     expect(await screen.findByText('Priya Sharma')).toBeInTheDocument();
   });
 
+  it('moves to the next page and shows its rows', async () => {
+    const requests: URLSearchParams[] = [];
+    server.use(
+      http.get('/api/v1/meta', () => HttpResponse.json(META)),
+      http.get('/api/v1/employees', ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        requests.push(params);
+        const pageNumber = Number(params.get('page'));
+        return HttpResponse.json(
+          page([makeEmployee({ firstName: `Page${pageNumber}`, lastName: 'Person' })], {
+            page: pageNumber,
+            total: 60,
+            totalPages: 3,
+          }),
+        );
+      }),
+    );
+    const { user, router } = renderApp({ route: '/employees' });
+    await screen.findByText('Page1 Person');
+
+    await user.click(screen.getByRole('button', { name: /next page/i }));
+
+    expect(await screen.findByText('Page2 Person')).toBeInTheDocument();
+    expect(screen.queryByText('Page1 Person')).not.toBeInTheDocument();
+    expect(screen.getByText('26–50 of 60')).toBeInTheDocument();
+    expect(router.state.location.search).toContain('page=2');
+    expect(requests.at(-1)?.get('page')).toBe('2');
+  });
+
+  it('opens a deep-linked page without jumping back to page 1', async () => {
+    const requests: URLSearchParams[] = [];
+    server.use(
+      http.get('/api/v1/meta', () => HttpResponse.json(META)),
+      http.get('/api/v1/employees', ({ request }) => {
+        requests.push(new URL(request.url).searchParams);
+        return HttpResponse.json(
+          page([makeEmployee({ firstName: 'Third' })], { page: 3, total: 60 }),
+        );
+      }),
+    );
+    const { router } = renderApp({ route: '/employees?page=3' });
+
+    await screen.findByText('Third Sharma');
+    expect(screen.getByText('51–60 of 60')).toBeInTheDocument();
+    expect(router.state.location.search).toContain('page=3');
+    expect(requests.every((r) => r.get('page') === '3')).toBe(true);
+  });
+
   it('shows an empty state when nothing matches', async () => {
     mockEmployeeList([]);
 

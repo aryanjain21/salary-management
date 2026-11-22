@@ -115,14 +115,19 @@ export function EmployeeTable({
     [canSortBySalary, countryNames, meta],
   );
 
-  const sortModel: GridSortModel = params.sortBy
-    ? [
-        {
-          field: COLUMN_FOR_SORT_FIELD[params.sortBy] ?? params.sortBy,
-          sort: params.sortOrder ?? 'asc',
-        },
-      ]
-    : [];
+  // These must keep a stable identity between renders. DataGrid treats a new
+  // sortModel reference as a sort change and jumps back to the first page,
+  // which silently undid every "next page" click.
+  const { sortBy, sortOrder, page, pageSize } = params;
+  const sortModel = useMemo<GridSortModel>(
+    () =>
+      sortBy ? [{ field: COLUMN_FOR_SORT_FIELD[sortBy] ?? sortBy, sort: sortOrder ?? 'asc' }] : [],
+    [sortBy, sortOrder],
+  );
+  const paginationModel = useMemo<GridPaginationModel>(
+    () => ({ page: page - 1, pageSize }),
+    [page, pageSize],
+  );
 
   const handleSortModelChange = (model: GridSortModel) => {
     const item = model[0];
@@ -153,7 +158,7 @@ export function EmployeeTable({
         loading={loading}
         paginationMode="server"
         sortingMode="server"
-        paginationModel={{ page: params.page - 1, pageSize: params.pageSize }}
+        paginationModel={paginationModel}
         onPaginationModelChange={handlePaginationModelChange}
         pageSizeOptions={pageSizes}
         sortModel={sortModel}
