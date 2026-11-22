@@ -13,7 +13,7 @@ describe('AppLayout', () => {
   it('navigates between sections', async () => {
     const { user } = renderApp({ route: '/employees' });
 
-    await user.click(screen.getByRole('link', { name: /pay insights/i }));
+    await user.click(await screen.findByRole('link', { name: /pay insights/i }));
 
     expect(await screen.findByRole('heading', { name: 'Pay insights' })).toBeInTheDocument();
   });
