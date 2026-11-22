@@ -60,8 +60,9 @@ erDiagram
     int id PK
     int employeeId FK
     int oldSalary
+    string oldCurrency
     int newSalary
-    string currency
+    string newCurrency "differs on relocation"
     string reason "nullable"
     datetime changedAt
   }

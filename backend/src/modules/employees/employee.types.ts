@@ -22,8 +22,9 @@ export interface SalaryChangeRecord {
   id: number;
   employeeId: number;
   oldSalary: number;
+  oldCurrency: string;
   newSalary: number;
-  currency: string;
+  newCurrency: string;
   reason: string | null;
   changedAt: Date;
 }
@@ -77,8 +78,9 @@ export type EmployeeChanges = Partial<Omit<NewEmployee, 'employeeCode'>>;
 
 export interface NewSalaryChange {
   oldSalary: number;
+  oldCurrency: string;
   newSalary: number;
-  currency: string;
+  newCurrency: string;
   reason: string | null;
 }
 

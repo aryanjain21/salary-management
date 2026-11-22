@@ -24,8 +24,9 @@ export interface EmployeeDto {
 export interface SalaryChangeDto {
   id: number;
   oldSalary: number;
+  oldCurrency: string;
   newSalary: number;
-  currency: string;
+  newCurrency: string;
   reason: string | null;
   changedAt: string;
 }
@@ -59,8 +60,9 @@ function toSalaryChangeDto(c: SalaryChangeRecord): SalaryChangeDto {
   return {
     id: c.id,
     oldSalary: c.oldSalary,
+    oldCurrency: c.oldCurrency,
     newSalary: c.newSalary,
-    currency: c.currency,
+    newCurrency: c.newCurrency,
     reason: c.reason,
     changedAt: c.changedAt.toISOString(),
   };

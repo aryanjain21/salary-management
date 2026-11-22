@@ -39,14 +39,16 @@ model Employee {
 /// Audit trail of salary changes. Written in the same transaction as the
 /// employee update so it can never drift from the current salary.
 model SalaryChange {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
-  oldSalary  Int
-  newSalary  Int
-  currency   String
-  reason     String?
-  changedAt  DateTime @default(now())
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  oldSalary   Int
+  oldCurrency String
+  newSalary   Int
+  /// Differs from oldCurrency when the employee moved to another country.
+  newCurrency String
+  reason      String?
+  changedAt   DateTime @default(now())
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId, changedAt])
 }
